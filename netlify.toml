@@ -2,10 +2,14 @@
 
 [build]
   publish = "public"
-  command = "echo \"Roadside AAA static frontend ready for Netlify\""
+  functions = "netlify/functions"
+  command = "npm install"
+
+[functions]
+  node_bundler = "esbuild"
 
 [[redirects]]
   from = "/api/*"
-  to = "https://roadside-aaa-8dx3.onrender.com/api/:splat"
+  to = "/.netlify/functions/api/api/:splat"
   status = 200
   force = true
