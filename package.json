@@ -1,6 +1,6 @@
 {
   "name": "roadside-aaa",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Roadside vehicle assistance and mechanic booking platform",
   "main": "server.js",
   "scripts": { "start": "node server.js", "dev": "node --watch server.js" },
@@ -11,6 +11,6 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.9.5"
+    "pg": "^8.13.1"
   }
 }
