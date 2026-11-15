@@ -3,7 +3,7 @@ const express=require("express"),cors=require("cors"),bcrypt=require("bcryptjs")
 const app=express();app.use(cors());app.use(express.json({limit:"1mb"}));app.use(express.static(path.join(__dirname,"public")));
 const SECRET=process.env.JWT_SECRET;if(!SECRET)throw new Error("JWT_SECRET must be configured");
 if(!process.env.DATABASE_URL)throw new Error("DATABASE_URL must be configured. Attach the Render PostgreSQL database.");
-const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:process.env.NODE_ENV==="production"?{rejectUnauthorized:false}:false});
+const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:process.env.NODE_ENV==="production"?{rejectUnauthorized:false}:false,max:5,idleTimeoutMillis:10000,connectionTimeoutMillis:10000});
 const q=(sql,params=[])=>pool.query(sql,params);
 async function init(){
  await q(`CREATE TABLE IF NOT EXISTS users(id TEXT PRIMARY KEY,name TEXT NOT NULL,email TEXT UNIQUE NOT NULL,password TEXT NOT NULL,phone TEXT DEFAULT '',role TEXT NOT NULL DEFAULT 'customer',verified BOOLEAN DEFAULT false,services TEXT[] DEFAULT '{}',price NUMERIC DEFAULT 0,lat DOUBLE PRECISION,lng DOUBLE PRECISION,rating NUMERIC DEFAULT 5,created_at TIMESTAMPTZ DEFAULT NOW())`);
@@ -48,4 +48,9 @@ app.patch("/api/admin/users/:id/verify",auth,role("admin"),async(req,res)=>{cons
 app.get("/api/admin/requests",auth,role("admin"),async(req,res)=>{const r=await q("SELECT * FROM service_requests ORDER BY created_at DESC");res.json(r.rows)});
 app.get("/api/admin/reports",auth,role("admin"),async(req,res)=>{const [monthly,byService,partners]=await Promise.all([q("SELECT TO_CHAR(date_trunc('month',issued_at),'Mon YYYY') AS month,SUM(amount)::numeric AS revenue,COUNT(*)::int AS jobs FROM invoices GROUP BY 1 ORDER BY MIN(issued_at) DESC LIMIT 12"),q("SELECT service,COUNT(*)::int AS jobs,COALESCE(SUM(final_price),0)::numeric AS revenue FROM service_requests GROUP BY service ORDER BY jobs DESC"),q("SELECT u.id,u.name,COUNT(i.id)::int AS jobs,COALESCE(SUM(i.amount),0)::numeric AS earnings FROM users u LEFT JOIN invoices i ON i.mechanic_id=u.id WHERE u.role='mechanic' GROUP BY u.id ORDER BY earnings DESC")]);res.json({monthly:monthly.rows,byService:byService.rows,partners:partners.rows})});
 app.get("/api/*",(req,res)=>res.status(404).json({error:"API route not found"}));app.get("*",(req,res)=>res.sendFile(path.join(__dirname,"public","index.html")));
-const port=process.env.PORT||3000;init().then(()=>app.listen(port,()=>console.log("Roadside AAA listening on "+port))).catch(e=>{console.error("Startup failed:",e);process.exit(1)});
+const ready=init();
+if(require.main===module){
+ const port=process.env.PORT||3000;
+ ready.then(()=>app.listen(port,()=>console.log("Roadside AAA listening on "+port))).catch(e=>{console.error("Startup failed:",e);process.exit(1)});
+}
+module.exports={app,ready,pool};
