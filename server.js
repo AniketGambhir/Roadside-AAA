@@ -1,9 +1,10 @@
 require("dotenv").config();
 const express=require("express"),cors=require("cors"),bcrypt=require("bcryptjs"),jwt=require("jsonwebtoken"),{Pool}=require("pg"),path=require("path"),crypto=require("crypto");
 const app=express();app.use(cors());app.use(express.json({limit:"1mb"}));app.use(express.static(path.join(__dirname,"public")));
-const SECRET=process.env.JWT_SECRET;if(!SECRET)throw new Error("JWT_SECRET must be configured");
-if(!process.env.DATABASE_URL)throw new Error("DATABASE_URL must be configured. Attach the Render PostgreSQL database.");
-const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:process.env.NODE_ENV==="production"?{rejectUnauthorized:false}:false,max:5,idleTimeoutMillis:10000,connectionTimeoutMillis:10000});
+const SECRET=process.env.JWT_SECRET;if(!SECRET)throw new Error("JWT_SECRET must be configured in Netlify environment variables");
+const DB_URL=process.env.NETLIFY_DB_URL||process.env.DATABASE_URL;
+if(!DB_URL)throw new Error("Netlify Database is not configured. Enable the database for this Netlify site.");
+const pool=new Pool({connectionString:DB_URL,ssl:process.env.NODE_ENV==="production"?{rejectUnauthorized:false}:false,max:5,idleTimeoutMillis:10000,connectionTimeoutMillis:10000});
 const q=(sql,params=[])=>pool.query(sql,params);
 async function init(){
  await q(`CREATE TABLE IF NOT EXISTS users(id TEXT PRIMARY KEY,name TEXT NOT NULL,email TEXT UNIQUE NOT NULL,password TEXT NOT NULL,phone TEXT DEFAULT '',role TEXT NOT NULL DEFAULT 'customer',verified BOOLEAN DEFAULT false,services TEXT[] DEFAULT '{}',price NUMERIC DEFAULT 0,lat DOUBLE PRECISION,lng DOUBLE PRECISION,rating NUMERIC DEFAULT 5,created_at TIMESTAMPTZ DEFAULT NOW())`);
