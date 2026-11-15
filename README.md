@@ -1,42 +1,34 @@
 # Roadside AAA
 
-A responsive roadside vehicle assistance and mechanic booking platform. Phase 1 includes customer requests, mechanic partner onboarding, admin verification, and job status tracking. No online payments are included.
+Roadside vehicle assistance, mechanic booking and job coordination platform.
 
-## Features
-- Customer registration/login and vehicle profiles
-- Requests for breakdown repair, towing, battery jump-start, flat tyre repair, and fuel delivery
-- Verified mechanic directory, with approximate distance sorting when browser location is shared
-- Mechanic profile, job acceptance, and status updates
-- Admin overview, partner verification, and request monitoring
-- Responsive dark automotive interface
+## Included
+- Customer and mechanic accounts with secure password hashing and JWT sessions
+- Vehicle profiles and roadside requests (breakdown repair, towing, jump-start, flat tyre, fuel delivery)
+- Verified partner directory and approximate distance sorting
+- Mechanic job acceptance and status changes
+- Opt-in mechanic location sharing while a job is active; customers can view the latest shared position on OpenStreetMap
+- Request timeline, service history and invoice generation when a job is completed with a final price
+- Customer complaints and admin complaint resolution
+- Admin partner verification, operational KPIs, service revenue and partner earnings reports
+- Responsive web UI; no online payments in Phase 1
 
 ## Run locally
-1. Install Node.js 20 or newer.
-2. Clone this repository and open its folder in VS Code.
-3. In the terminal run:
-   ```bash
-   npm install
-   ```
-4. Copy `.env.example` to `.env` and set a long random `JWT_SECRET`.
-5. Optional but recommended: set `MONGODB_URI` to a MongoDB database connection string. Without it, the app uses temporary in-memory data that resets when the server restarts.
-6. Start:
-   ```bash
-   npm start
-   ```
-7. Open http://localhost:3000
+1. Install Node.js 20+ and PostgreSQL.
+2. Run `npm install`.
+3. Create a PostgreSQL database and set `DATABASE_URL` in `.env`.
+4. Set a strong `JWT_SECRET` and `ADMIN_EMAIL` in `.env`.
+5. Run `npm start` and open http://localhost:3000.
 
-## Admin account
-Set `ADMIN_EMAIL` to the email address you want to use as administrator. For the first account with that email, register normally, then promote the account in MongoDB by setting `role: "admin"`. Do not expose admin registration publicly.
+## Admin access
+The account registered with the exact `ADMIN_EMAIL` value is assigned the admin role automatically. The Render Blueprint currently sets this to the repository owner's Render workspace email. Change it before first admin registration if another administrator should own the platform. Keep admin credentials private.
 
-## Deploy on Render
-- Create a new **Web Service** and connect this repository.
-- Build command: `npm install`
-- Start command: `npm start`
-- Add environment variables: `JWT_SECRET` (strong random value), `MONGODB_URI` (MongoDB Atlas connection string), and `ADMIN_EMAIL`.
-- Render configuration is also included in `render.yaml`.
+## Render
+The included `render.yaml` describes the Node web service and PostgreSQL database. The web service receives the database connection string through Render's `fromDatabase` reference. Review and approve the Blueprint sync if Render requests approval.
 
-## Important Phase 1 notes
-- Location is optional and only collected after browser permission. Distance is approximate straight-line distance, not road distance.
-- This initial release does not provide turn-by-turn maps, background GPS tracking, guaranteed dispatch, emergency-call handling, or payments.
-- MongoDB is required for persistent production data. In-memory mode is only for a quick local demo.
-- Admin access must be provisioned securely by the project owner.
+## Operational limits
+- Browser location permission is required. The mechanic must keep the partner page open and grant location access for foreground location updates; this is not background tracking.
+- Distances are straight-line estimates, not road-route distances or guaranteed ETAs.
+- Invoices are service records; online payment processing is intentionally excluded.
+- The free Render PostgreSQL plan is temporary and expires after its trial period. Upgrade or migrate to a persistent paid database before relying on production data.
+- This is not an emergency dispatch service. For immediate danger, contact local emergency services.
