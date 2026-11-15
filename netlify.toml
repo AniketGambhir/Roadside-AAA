@@ -1,0 +1,11 @@
+"$schema" = "https://open-api.netlify.com/netlify.schema.json"
+
+[build]
+  publish = "public"
+  command = "echo \"Roadside AAA static frontend ready for Netlify\""
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://roadside-aaa-8dx3.onrender.com/api/:splat"
+  status = 200
+  force = true
